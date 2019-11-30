@@ -13,7 +13,9 @@
     },
     "scripts": {
         "start": "PORT=8123 react-app-rewired start",
-        "build": "react-app-rewired build",
+        "finalize": "mkdir -p ../dist && cp src/userscript-header.js ../dist/crowdmark-addons.user.js && cat build/static/js/main.js >> ../dist/crowdmark-addons.user.js",
+        "build": "react-app-rewired build && npm run finalize",
+        "debug-build": "react-app-rewired --inspect-brk=5858 build && npm run finalize",
         "test": "react-app-rewired test",
         "eject": "react-app-rewired eject"
     },

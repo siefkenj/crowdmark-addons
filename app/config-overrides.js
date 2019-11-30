@@ -51,6 +51,26 @@ module.exports = function override(config, env) {
     config.plugins = config.plugins.filter(
         x => !x || x.constructor.name !== "HotModuleReplacementPlugin"
     );
+
+    // Remove the CSS extract plugin because we want CSS injected directly in
+    // the greasemonkey script
+    config.plugins = config.plugins.filter(
+        x => !x || x.constructor.name !== "MiniCssExtractPlugin"
+    );
+    /*const cssPluginIndex = config.plugins.findIndex(x => x.constructor.name === "MiniCssExtractPlugin")
+    if (cssPluginIndex) {
+        config.plugins.splice(cssPluginIndex, 1)
+    } else {
+        console.warn("Cannot find MiniCssExtractPlugin to remove")
+    }*/
+    (config.module.rules.find(x => !!x.oneOf).oneOf ||[]).forEach(x => {
+        if (x.test && x.test.constructor === RegExp && "test.css".match(x.test)) {
+            x.use = x.use.filter(y => !y.loader.includes("css-extract"))
+            x.use.unshift(require.resolve('style-loader'))
+        }
+    })
+
+
     // Even in production mode, we want the CSS inlined instead of put in a different file
     /*
     config.plugins = config.plugins.filter(

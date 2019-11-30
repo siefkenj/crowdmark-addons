@@ -6,7 +6,7 @@ features to the Crowdmark website.
 # Installation
 
 In Firefox, install the [Greasemonkey](https://addons.mozilla.org/en-CA/firefox/addon/greasemonkey/) extension. 
-Then click [install crowdmark-addons](https://github.com/siefkenj/crowdmark-addons/raw/master/dist/crowdmark-addons.user.js)
+Then click [here](https://github.com/siefkenj/crowdmark-addons/raw/master/dist/crowdmark-addons.user.js)
 and an install dialog should appear.
 
 # Development

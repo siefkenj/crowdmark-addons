@@ -1,0 +1,59 @@
+table.comments-list td {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+table.comments-list th {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+.clear-filters {
+    transition: color 150ms;
+    color: rgb(102, 102, 102);
+    cursor: pointer;
+}
+.clear-filters:hover {
+    color: gray;
+}
+.question-viewport-container {
+    width: 600px;
+    border: 2px solid #2ec0fa;
+    border-radius: 8px;
+    padding: 2px;
+    margin: 2px;
+    display: inline-block;
+    background-color: #f7f9fc;
+}
+.question-viewport-container.selected {
+    border-style: dashed;
+}
+.question-viewport-container .viewport-header {
+    color: cornflowerblue;
+    display: flex;
+    justify-content: space-between;
+}
+.question-glance img.user-image {
+    width: 20px;
+}
+.question-viewport-container .booklet-number {
+    font-weight: bold;
+    color: unset;
+    text-decoration: underline;
+}
+.filter-comment {
+    font-weight: bold;
+    font-style: italic;
+}
+.paginator {
+    display: flex;
+}
+.paginator input {
+    height: unset;
+}
+.paginator button {
+    padding: unset;
+}
+
+table.comments-list {
+    margin-left: 3px;
+    margin-right: 3px;
+}

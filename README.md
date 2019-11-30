@@ -27,7 +27,8 @@ npm run build
 ```
 
 When the build script completes, you should have a fresh version of *Crodmark Addons* located at `dist/crowdmark-addons.user.js`
-(in the top-level `dist/` directory).
+(in the top-level `dist/` directory). (Ignore the message provided on the console about serving the poject; that message is for
+developing a normal web application, not a Greasemonkey addon.)
 
 ## Development and Dynamic Loading
 

@@ -3,6 +3,10 @@
 Crowdmark Addons is a Greasemonkey script to add administrative 
 features to the Crowdmark website.
 
+Features include:
+  * See all booklet numbers that have been matched with the exam-matcher app but have not been uploaded.
+  * Select a region of a question and a comment/tag/marker and view that region of all matching tests in on one page.
+
 # Installation
 
 In Firefox, install the [Greasemonkey](https://addons.mozilla.org/en-CA/firefox/addon/greasemonkey/) extension. 

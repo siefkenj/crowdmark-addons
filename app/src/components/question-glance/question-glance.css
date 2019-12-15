@@ -23,6 +23,19 @@ table.comments-list th {
     display: inline-block;
     background-color: #f7f9fc;
 }
+.question-viewport-container.zoom-question-2 {
+    width: 1000px;
+}
+.question-viewport-container.zoom-question-1 {
+    width: 800px;
+}
+.question-viewport-container.zoom-question--1 {
+    width: 400px;
+}
+.question-viewport-container.zoom-question--2 {
+    width: 200px;
+    font-size: smaller;
+}
 .question-viewport-container.selected {
     border-style: dashed;
 }

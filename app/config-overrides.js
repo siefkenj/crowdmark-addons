@@ -52,39 +52,27 @@ module.exports = function override(config, env) {
         x => !x || x.constructor.name !== "HotModuleReplacementPlugin"
     );
 
+    // Even in production mode, we want the CSS inlined instead of put in a different file
     // Remove the CSS extract plugin because we want CSS injected directly in
     // the greasemonkey script
     config.plugins = config.plugins.filter(
         x => !x || x.constructor.name !== "MiniCssExtractPlugin"
     );
-    /*const cssPluginIndex = config.plugins.findIndex(x => x.constructor.name === "MiniCssExtractPlugin")
-    if (cssPluginIndex) {
-        config.plugins.splice(cssPluginIndex, 1)
-    } else {
-        console.warn("Cannot find MiniCssExtractPlugin to remove")
-    }*/
-    (config.module.rules.find(x => !!x.oneOf).oneOf ||[]).forEach(x => {
-        if (x.test && x.test.constructor === RegExp && "test.css".match(x.test)) {
-            x.use = x.use.filter(y => !y.loader.includes("css-extract"))
-            x.use.unshift(require.resolve('style-loader'))
+    (config.module.rules.find(x => !!x.oneOf).oneOf || []).forEach(x => {
+        if (
+            x.test &&
+            x.test.constructor === RegExp &&
+            "test.css".match(x.test)
+        ) {
+            try {
+                x.use = x.use.filter(y => !y.loader.includes("css-extract"));
+                x.use.unshift(require.resolve("style-loader"));
+            } catch (e) {
+                // If we fail to replace a `css-extract` move on silently
+                // This will happen if, for example, it has already been replaced
+            }
         }
-    })
+    });
 
-
-    // Even in production mode, we want the CSS inlined instead of put in a different file
-    /*
-    config.plugins = config.plugins.filter(
-        x => !x || x.constructor.name !== "MiniCssExtractPlugin"
-    );
-    (config.module.rules.find(x => !!x.oneOf).oneOf ||[]).forEach(x => {
-        if (x.test && x.test.constructor === RegExp && "test.css".match(x.test)) {
-            x.use = x.use.filter(y => !y.loader.includes("css-extractor"))
-            x.use.unshift(require.resolve('style-loader'))
-        }
-    })
-    //   console.log(config.plugins.map(x => x.constructor.name))
- //    console.log(util.inspect(config.module.rules[2], false, null, true))
-//    return
-*/
     return config;
 };

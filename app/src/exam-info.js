@@ -74,7 +74,6 @@ export class ExamInfo {
             `https://app.crowdmark.com/api/v2/exam-masters/test-assessment-f6e38?id=test-assessment-f6e38&include[]=exam-master-questions&include[]=exam-master-pages`
         );
         json = await resp.json();
-        log("boo", deserialize(json));
         return [this.masterPages, this.masterQuestions];
     }
 
@@ -84,7 +83,6 @@ export class ExamInfo {
         );
         let json = await resp.json();
         this.questions = deserialize(json).data["exam-master-questions"];
-        log(this.questions);
         return this.questions;
     }
 
@@ -116,6 +114,47 @@ export class ExamInfo {
         */
     }
 
+    async fetchUnmarkedExams() {
+        // Get one record first. It's fast and will tell us how many records there are in total
+        let resp = await logFetch(
+            `/api/v2/exams?filter[exam-master]=${this.exam}&include[]=evaluations&include[]=evaluations.marker&page[size]=1`
+        );
+        let json = await resp.json();
+        const onePage = deserialize(json);
+
+        resp = await logFetch(
+            `/api/v2/exams?filter[exam-master]=${this.exam}&include[]=evaluations&include[]=evaluations.marker&page[size]=${onePage.meta.pagination["total-records"]}`
+        );
+        json = await resp.json();
+
+        return deserialize(json).data.filter(x => x["has-uploaded-pages"]);
+    }
+
+    async fetchUnmarkedExamsForQuestion(question) {
+        // we have to fetch all exams and then filter by which ones have evaluations for a particular quesiton
+        const data = await this.fetchUnmarkedExams();
+        // Find only booklets where the current selected question has not been marked.
+        return (
+            data
+                .filter(
+                    x =>
+                        // If there are no evaluations, `x.evaluations` will be null instead of an empty array...
+                        !(x.evaluations || []).some(
+                            e =>
+                                e["exam-master-question-slug"] ===
+                                    question.slug && e.state === "marked"
+                        )
+                )
+                // For some reason the API switches between `exam-sequence` and `sequence`.
+                // Normalize this.
+                .map(x => ({
+                    ...x,
+                    "exam-sequence": x.sequence,
+                    slug: question.slug
+                }))
+        );
+    }
+
     async fetchGradersForQuestion(question) {
         let resp = await logFetch(
             `/api/v2//team-members?filter[exam-master]=${this.exam}&filter[has-graded]=true&include[]=user`
@@ -135,7 +174,12 @@ export class ExamInfo {
     }
 
     async fetchBookletInfoForQuestionAndFilter(question, filter) {
-        const { comment, tag, grader } = filter;
+        const { comment, tag, grader, onlyUnmarked } = filter;
+
+        if (onlyUnmarked) {
+            return await this.fetchUnmarkedExamsForQuestion(question);
+        }
+
         let resp = await logFetch(
             `/api/v2/evaluations?filter[exam-master]=${this.exam}&filter[question]=${question.id}&page[size]=10000` +
                 (comment ? `&filter[comment-master]=${comment.id}` : "") +
@@ -158,8 +202,8 @@ export class ExamInfo {
             const qSequence = question.sequence;
             const qPage = question["exam-master-page"].number;
             const {
-                annotations,
-                evaluations,
+                annotations = [],
+                evaluations = [],
                 "exam-pages": examPages,
                 "exam-questions": examQuestions,
                 ...ret
@@ -176,6 +220,7 @@ export class ExamInfo {
                 x => x.sequence === qSequence
             );
             ret.taggings = ret["exam-question"].taggings || [];
+            ret.slug = qSlug;
 
             return ret;
         }
@@ -197,7 +242,6 @@ export class ExamInfo {
     async fetchMatched() {
         const resp = await logFetch(`/api/v2/grading-grids/${this.exam}`);
         const json = await resp.json();
-        log(json);
         // Store all the gradint grid rows so we can load the data about whether they've been matched
         this.gradingGrid = {};
         for (const row of json.included) {
@@ -285,6 +329,6 @@ export function formatQuestion(question) {
             x => x.evaluation.id === evalId
         ),
         evaluation: evaluation,
-        slug: (evaluation || {})["exam-master-question-slug"]
+        slug: (evaluation || {})["exam-master-question-slug"] || question.slug
     };
 }

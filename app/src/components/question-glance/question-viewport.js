@@ -4,11 +4,19 @@ import { RenderedQuestion } from "./question-renderer";
 import { formatQuestion, exam } from "../../exam-info";
 
 export function QuestionViewport(props) {
-    const { question, crop, collapsed, selected, onClick = () => {} } = props;
+    const {
+        question,
+        crop,
+        collapsed,
+        selected,
+        onClick = () => {},
+        className
+    } = props;
     const q = formatQuestion(question);
     return (
         <div
             className={classNames([
+                className,
                 "question-viewport-container",
                 { selected: selected }
             ])}
@@ -25,15 +33,17 @@ export function QuestionViewport(props) {
                     </a>{" "}
                     score {q.points}/{q.maxPoints}
                 </div>
-                <div>
-                    by{" "}
-                    <img
-                        className="user-image user-image-sml"
-                        src={q.evaluation.marker["tiny-avatar-url"]}
-                        alt={`${q.evaluation.marker["display-name"]} ${q.evaluation.marker.email}`}
-                    />{" "}
-                    {q.evaluation.marker["display-name"]}
-                </div>
+                {q.evaluation && (
+                    <div>
+                        by{" "}
+                        <img
+                            className="user-image user-image-sml"
+                            src={q.evaluation.marker["tiny-avatar-url"]}
+                            alt={`${q.evaluation.marker["display-name"]} ${q.evaluation.marker.email}`}
+                        />{" "}
+                        {q.evaluation.marker["display-name"]}
+                    </div>
+                )}
             </div>
             {!collapsed && <RenderedQuestion question={question} crop={crop} />}
         </div>

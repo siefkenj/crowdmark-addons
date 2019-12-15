@@ -5,6 +5,7 @@ import { exam } from "./exam-info";
 import { ScanStatsButton } from "./components/scan-stats-button";
 import { QuestionGlanceButton } from "./components/question-glance/question-glance-button";
 import { QueryApiButton } from "./components/query-api-button";
+//import { TestButton } from "./components/test-button";
 
 log("React Script has successfully started");
 

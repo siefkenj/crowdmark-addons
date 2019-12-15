@@ -36,6 +36,9 @@ export function QuestionFilterTab(props) {
     function setSelectedGradersByIndex(i) {
         setFilter({ ...filter, grader: gradersList[i] });
     }
+    function setSelectedOnlyUnmarked(val) {
+        setFilter({ ...filter, onlyUnmarked: val });
+    }
 
     // Whenever the question changes, we need to update the list of tags and comments
     React.useEffect(() => {
@@ -68,10 +71,23 @@ export function QuestionFilterTab(props) {
     }
 
     return (
-        <div  className="question-glance">
+        <div className="question-glance">
             <h4>
                 Viewing Question {question.label} ({question.slug})
             </h4>
+
+            <div style={{ display: "flex" }}>
+                <input
+                    type="checkbox"
+                    name="only-unmarked"
+                    id="only-unmarked"
+                    checked={filter.onlyUnmarked || false}
+                    onChange={() => {
+                        setSelectedOnlyUnmarked(!filter.onlyUnmarked);
+                    }}
+                />
+                <label htmlFor="only-unmarked">Only show unmarked exams</label>
+            </div>
             <div style={{ display: "flex" }}>
                 <CommentTable
                     comments={commentList}

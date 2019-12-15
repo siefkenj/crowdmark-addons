@@ -161,7 +161,7 @@ export function RenderedQuestion(props) {
                 height={boundingBox.h}
                 style={{
                     width: "100%",
-                    minWidth: 200,
+                    minWidth: 100,
                     backgroundColor: "orange"
                 }}
             />

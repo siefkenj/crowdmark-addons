@@ -1,4 +1,5 @@
 import React from "react";
+import classNames from "classnames";
 import { exam } from "../../exam-info";
 import { Dialog } from "../dialog";
 import { Button } from "../button";
@@ -10,6 +11,7 @@ import "./question-glance.css";
 import { QuestionViewport } from "./question-viewport";
 import { PaginatedExamSequenceSelector } from "./exam-sequence-paginator";
 import { QuestionFilterTab } from "./question-filter-tab";
+import { SizeSelect } from "./select-size-slider";
 
 function QuestionDropdown(props) {
     const { questions, selectedQuestion, onChange } = props;
@@ -52,6 +54,8 @@ function ViewQuestionsTab(props) {
     const { question, filter, boundingBox } = props;
     const [bookletInfo, setBookletInfo] = React.useState([]);
     const [displayedBooklets, setDisplayedBooklets] = React.useState([]);
+    const [spinner, setSpinner] = React.useState(false);
+    const [size, setSize] = React.useState(0);
 
     // comments may be used more than once on a page
     const bookletNumbers = Array.from(
@@ -68,7 +72,8 @@ function ViewQuestionsTab(props) {
             return;
         }
         async function prep() {
-            const bookletInfo = await exam.fetchBookletInfoForQuestionAndFilter(
+            setSpinner(true);
+            let bookletInfo = await exam.fetchBookletInfoForQuestionAndFilter(
                 question,
                 filter
             );
@@ -80,9 +85,13 @@ function ViewQuestionsTab(props) {
                 bookletInfo
             );
         }
-        prep().catch(e => {
-            log(e);
-        });
+        prep()
+            .catch(e => {
+                log(e);
+            })
+            .finally(() => {
+                setSpinner(false);
+            });
     }, [question, filter]);
 
     if (!question) {
@@ -97,7 +106,7 @@ function ViewQuestionsTab(props) {
             <h4>
                 Viewing Question {question.label} ({question.slug})
             </h4>
-            <p>
+            <p className={classNames([{ "icon--spinner": spinner }])}>
                 Filtering by:{" "}
                 {filter.comment && (
                     <>
@@ -123,6 +132,10 @@ function ViewQuestionsTab(props) {
                         </span>
                     </>
                 )}
+                {filter.onlyUnmarked && (
+                    <>Unmarked Booklets (this can take a while)</>
+                )}
+                <SizeSelect value={size} setValue={setSize} />
             </p>
             <PaginatedExamSequenceSelector
                 seq={bookletNumbers}
@@ -147,6 +160,7 @@ function ViewQuestionsTab(props) {
                         w: boundingBox.w / 1200,
                         h: boundingBox.h / 1553
                     }}
+                    className={`zoom-question-${size}`}
                 />
             ))}
         </div>

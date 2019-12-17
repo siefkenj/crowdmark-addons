@@ -122,12 +122,24 @@ export class ExamInfo {
         let json = await resp.json();
         const onePage = deserialize(json);
 
-        resp = await logFetch(
-            `/api/v2/exams?filter[exam-master]=${this.exam}&include[]=evaluations&include[]=evaluations.marker&page[size]=${onePage.meta.pagination["total-records"]}`
-        );
-        json = await resp.json();
+        // We cannot fetch everything at once 'cause there might be too much data, so
+        // we will fetch a bunch of pages.
+        const PAGE_SIZE = 50;
+        const numBooklets = onePage.meta.pagination["total-records"];
+        const numFetches = Math.ceil(numBooklets / PAGE_SIZE);
 
-        return deserialize(json).data.filter(x => x["has-uploaded-pages"]);
+        const fetches = Array.from(Array(numFetches), (_, page) =>
+            logFetch(
+                `/api/v2/exams?filter[exam-master]=${this.exam}&include[]=evaluations&include[]=evaluations.marker` +
+                    `&page[size]=${PAGE_SIZE}&page[number]=${page + 1}`
+            )
+        );
+        const respData = (await Promise.all(fetches)).map(resp => resp.json());
+        const jsonData = await Promise.all(respData);
+        const datas = jsonData.map(json => deserialize(json).data);
+        const data = [].concat(...datas);
+
+        return data.filter(x => x["has-uploaded-pages"]);
     }
 
     async fetchUnmarkedExamsForQuestion(question) {

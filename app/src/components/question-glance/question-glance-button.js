@@ -56,6 +56,8 @@ function ViewQuestionsTab(props) {
     const [displayedBooklets, setDisplayedBooklets] = React.useState([]);
     const [spinner, setSpinner] = React.useState(false);
     const [size, setSize] = React.useState(0);
+    const [page, setPage] = React.useState(1);
+    const [numPerPage, setNumPerPage] = React.useState(20);
 
     // comments may be used more than once on a page
     const bookletNumbers = Array.from(
@@ -138,6 +140,10 @@ function ViewQuestionsTab(props) {
                 <SizeSelect value={size} setValue={setSize} />
             </p>
             <PaginatedExamSequenceSelector
+                page={page}
+                setPage={setPage}
+                numPerPage={numPerPage}
+                setNumPerPage={setNumPerPage}
                 seq={bookletNumbers}
                 callback={async bookletNumber => {
                     const info = await exam.fetchInfoForBookletsByQuestion(
@@ -163,6 +169,13 @@ function ViewQuestionsTab(props) {
                     className={`zoom-question-${size}`}
                 />
             ))}
+            <PaginatedExamSequenceSelector
+                page={page}
+                setPage={setPage}
+                seq={bookletNumbers}
+                numPerPage={numPerPage}
+                setNumPerPage={setNumPerPage}
+            />
         </div>
     );
 }

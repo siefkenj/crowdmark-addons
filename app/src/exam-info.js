@@ -251,6 +251,28 @@ export class ExamInfo {
         return result.map(filterInfo);
     }
 
+    async fetchMobileTokenInfo() {
+        const data = await getAllPages(
+            `/api/v2/enrollments?filter[exam-master]=${this.exam}&include[]=mobile-token`
+        );
+        const withToken = data.filter(x => !!x["mobile-token"]);
+        const tokens = new Set(withToken.map(x => x["mobile-token"].id));
+        const summary = {};
+        for (const token of tokens) {
+            const filtered = withToken.filter(x => x["mobile-token"].id === token);
+            if (filtered.length === 0) {
+                continue;
+            }
+            summary[token] = {
+                token,
+                name: filtered[0]["mobile-token"].name,
+                matchedExams: filtered.map(x => +x.sequence)
+            };
+        }
+
+        return summary;
+    }
+
     async fetchMatched() {
         const resp = await logFetch(`/api/v2/grading-grids/${this.exam}`);
         const json = await resp.json();
@@ -343,4 +365,64 @@ export function formatQuestion(question) {
         evaluation: evaluation,
         slug: (evaluation || {})["exam-master-question-slug"] || question.slug
     };
+}
+
+/**
+ * Create an array of 0..n
+ *
+ * @param {number} [n=1]
+ * @returns {object[]}
+ */
+function range(n = 1) {
+    return Array.from(Array(n), (_, i) => i);
+}
+
+/**
+ * Returns an array of arrays consisting of
+ * the input array's elements chunked into lists
+ * of size `chunkSize`
+ *
+ * @param {object[]} [array=[]]
+ * @param {number} [chunkSize=10]
+ * @returns {array[]}
+ */
+function chunkArray(array = [], chunkSize = 10) {
+    const numChunks = Math.ceil(array.length / chunkSize);
+    return range(numChunks).map(chunk =>
+        array.slice(chunk * chunkSize, (chunk + 1) * chunkSize)
+    );
+}
+
+/**
+ * Fetch `url` in multiple pages and return the combined data. Pages will be fetch in parallel
+ * as specified by `MAX_PARALLEL_FETCHES`
+ *
+ * @param {string} url
+ * @param {number} [PAGE_SIZE=50]
+ * @param {number} [MAX_PARALLEL_FETCHES=5]
+ * @returns {Promise<array>} Data that has been fetched
+ */
+async function getAllPages(url, PAGE_SIZE = 50, MAX_PARALLEL_FETCHES = 5) {
+    // Get one record first. It's fast and will tell us how many records there are in total
+    let resp = await logFetch(`${url}&page[size]=1`);
+    let json = await resp.json();
+    const onePage = deserialize(json);
+    const numBooklets = onePage.meta.pagination["total-records"];
+    const numFetches = Math.ceil(numBooklets / PAGE_SIZE);
+    // Make an array of the pages that need to be fetched
+    const pagesToFetch = range(numFetches).map(i => i + 1);
+    // Chunk `pagesToFetch` into pieces that will be fetched in parallel
+    let data = [];
+    for (const chunk of chunkArray(pagesToFetch, MAX_PARALLEL_FETCHES)) {
+        const fetches = chunk.map(page =>
+            logFetch(`${url}&page[size]=${PAGE_SIZE}&page[number]=${page}`)
+        );
+
+        const respData = (await Promise.all(fetches)).map(resp => resp.json());
+        const jsonData = await Promise.all(respData);
+        const datas = jsonData.map(json => deserialize(json).data);
+        data = data.concat(...datas);
+    }
+
+    return data;
 }

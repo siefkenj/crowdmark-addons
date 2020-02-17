@@ -8,9 +8,11 @@ export function ScanStatsButton(props) {
     const [spinner, setSpinner] = React.useState(false);
     const [dialogVisible, setDialogVisible] = React.useState(false);
     const [missingList, setMissingList] = React.useState([]);
+    const [tokenData, setTokenData] = React.useState({});
 
     async function onClick() {
         setSpinner(true);
+        setTokenData(await exam.fetchMobileTokenInfo());
         await exam.fetchMatched();
         const missing = await exam.checkMissingMatched();
         log("Found missing exams", missing);
@@ -27,6 +29,21 @@ export function ScanStatsButton(props) {
         </li>
     ));
 
+    const renderedTokenDataList = Object.values(tokenData).map(
+        ({ token, name, matchedExams }) => (
+            <li key={token} style={{ marginBottom: 10 }}>
+                <span style={{ minWidth: 300, display: "inline-block" }}>
+                    <b>{name}</b> (token '{token}')
+                </span>
+                <span style={{ marginLeft: 20 }}>
+                    {" "}
+                    matched{" "}
+                    <b title={matchedExams.join(", ")}>{matchedExams.length}</b>
+                </span>
+            </li>
+        )
+    );
+
     return (
         <>
             <Button
@@ -37,10 +54,14 @@ export function ScanStatsButton(props) {
                 Scan Statistics
             </Button>
             <Dialog
-                title="Matched but not uploaded exams"
+                title="Matched Exam Info"
                 visible={dialogVisible}
                 onClose={() => setDialogVisible(false)}
             >
+                <ul>{renderedTokenDataList}</ul>
+                <h5 style={{ marginTop: "1em", fontWeight: "bold" }}>
+                    Missing Exam Info
+                </h5>
                 {missingList.length === 0 ? (
                     "No exams missing"
                 ) : (

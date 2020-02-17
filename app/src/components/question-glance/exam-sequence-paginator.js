@@ -15,13 +15,10 @@ import "@trendmicro/react-paginations/dist/react-paginations.css";
  * @returnType {React.Node}
  */
 export function PaginatedExamSequenceSelector(props) {
-    const { seq: _seq, setData = () => {}, callback = () => {} } = props;
-    const [numPerPage, setNumPerPage] = React.useState(15);
-    const [page, setPage] = React.useState(1);
+    const { seq: _seq, setData = () => {}, callback = () => {}, page, setPage, numPerPage, setNumPerPage } = props;
     const [spinner, setSpinner] = React.useState(false);
 
     const seq = [..._seq].sort((a, b) => a - b);
-    log("Paginating", seq);
 
     React.useEffect(() => {
         let abort = false;

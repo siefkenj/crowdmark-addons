@@ -28,6 +28,8 @@ export function QuestionViewport(props) {
                     <a
                         href={`/exams/${exam.exam}/grading/student/${q.bookletNumber}/question/${q.slug}`}
                         className="booklet-number"
+                        target="_blank"
+                        rel="noopener noreferrer"
                     >
                         {q.bookletNumber}
                     </a>{" "}
@@ -45,7 +47,15 @@ export function QuestionViewport(props) {
                     </div>
                 )}
             </div>
-            {!collapsed && <RenderedQuestion question={question} crop={crop} />}
+            {!collapsed && (
+                <a
+                    href={`/exams/${exam.exam}/grading/student/${q.bookletNumber}/question/${q.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <RenderedQuestion question={question} crop={crop} />
+                </a>
+            )}
         </div>
     );
 }

@@ -10,7 +10,6 @@ export function Button(props) {
                 { "icon--spinner": spinner },
                 { "button--warning": active }
             )}
-            id="ca-scan-statistics"
             {...rest}
         >
             {children}

@@ -96,7 +96,7 @@ export class ExamInfo {
 
     async fetchTagsForQuestion(question) {
         let resp = await logFetch(
-            `/api/v2//tags?filter[exam-master]=${this.exam}`
+            `/api/v2/tags?filter[exam-master]=${this.exam}`
         );
         let json = await resp.json();
         const tags = deserialize(json).data;
@@ -143,7 +143,7 @@ export class ExamInfo {
     }
 
     async fetchUnmarkedExamsForQuestion(question) {
-        // we have to fetch all exams and then filter by which ones have evaluations for a particular quesiton
+        // we have to fetch all exams and then filter by which ones have evaluations for a particular question
         const data = await this.fetchUnmarkedExams();
         // Find only booklets where the current selected question has not been marked.
         return (
@@ -212,7 +212,8 @@ export class ExamInfo {
             }
             const qSlug = question.slug;
             const qSequence = question.sequence;
-            const qPage = question["exam-master-page"].number;
+            // For student-uploaded assignments, this will be undefined
+            const qPage = (question["exam-master-page"] || {}).number;
             const {
                 annotations = [],
                 evaluations = [],
@@ -222,7 +223,7 @@ export class ExamInfo {
             } = info;
 
             ret.annotations = annotations.filter(
-                x => x["exam-page"].number === qPage
+                x => qPage != null ? x["exam-page"].number === qPage : true
             );
             ret.evaluations = evaluations.filter(
                 x => x["exam-master-question-slug"] === qSlug

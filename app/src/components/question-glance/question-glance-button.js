@@ -65,7 +65,7 @@ function ViewQuestionsTab(props) {
     ).sort();
 
     log(
-        "diplaying booklets",
+        "displaying booklets",
         bookletInfo.map(x => x["exam-sequence"])
     );
 

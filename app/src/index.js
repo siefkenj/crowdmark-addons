@@ -6,6 +6,7 @@ import { ScanStatsButton } from "./components/scan-stats-button";
 import { QuestionGlanceButton } from "./components/question-glance/question-glance-button";
 import { QueryApiButton } from "./components/query-api-button";
 //import { TestButton } from "./components/test-button";
+import { DownloadCommentsButton } from "./components/download-comments";
 
 log("React Script has successfully started");
 
@@ -29,6 +30,7 @@ async function main() {
                 <ScanStatsButton />
                 <QuestionGlanceButton />
                 <QueryApiButton />
+                <DownloadCommentsButton />
             </>,
             newSpan
         );

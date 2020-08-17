@@ -40,7 +40,7 @@ async function main() {
 addLocationChangeCallback(() => {
     // Greasemonkey doesn't bubble errors up to the main console,
     // so we have to catch them manually and log them
-    main().catch(e => {
+    main().catch((e) => {
         log(e);
     });
 });

@@ -277,7 +277,7 @@ export class ExamInfo {
     async fetchMatched() {
         const resp = await logFetch(`/api/v2/grading-grids/${this.exam}`);
         const json = await resp.json();
-        // Store all the gradint grid rows so we can load the data about whether they've been matched
+        // Store all the grading grid rows so we can load the data about whether they've been matched
         this.gradingGrid = {};
         for (const row of json.included) {
             this.gradingGrid[row.attributes.sequence] = row;

@@ -1,6 +1,6 @@
 import React from "react";
 import classNames from "classnames";
-import { exam } from "../../exam-info";
+import { exam, formatQuestion } from "../../exam-info";
 import { Dialog } from "../dialog";
 import { Button } from "../button";
 import { ClippedImage } from "./clipped-image";
@@ -50,6 +50,132 @@ function QuestionDropdown(props) {
     );
 }
 
+function ViewQuestionPageUrls(props) {
+    const { question, filter } = props;
+    const [bookletInfo, setBookletInfo] = React.useState([]);
+    const [displayedBooklets, setDisplayedBooklets] = React.useState([]);
+    const [spinner, setSpinner] = React.useState(false);
+
+    // comments may be used more than once on a page
+    const bookletNumbers = Array.from(
+        new Set(bookletInfo.map((x) => x["exam-sequence"]))
+    ).sort();
+
+    log(
+        "displaying booklets",
+        bookletInfo.map((x) => x["exam-sequence"])
+    );
+
+    React.useEffect(() => {
+        if (!question) {
+            return;
+        }
+        async function prep() {
+            setSpinner(true);
+            let bookletInfo = await exam.fetchBookletInfoForQuestionAndFilter(
+                question,
+                filter
+            );
+            setBookletInfo(bookletInfo);
+            log(
+                "Found booklets matching filter:",
+                filter,
+                "booklets:",
+                bookletInfo
+            );
+            log("Fetching details about booklets");
+            setDisplayedBooklets(
+                await exam.fetchInfoForBookletsByQuestion(
+                    question,
+                    bookletNumbers
+                )
+            );
+        }
+        prep()
+            .catch((e) => {
+                log(e);
+            })
+            .finally(() => {
+                setSpinner(false);
+            });
+    }, [question, filter]);
+
+    React.useEffect(() => {
+        if (!question) {
+            return;
+        }
+        async function prep() {
+            setSpinner(true);
+            log("Fetching details about booklets");
+            setDisplayedBooklets(
+                await exam.fetchInfoForBookletsByQuestion(
+                    question,
+                    bookletNumbers
+                )
+            );
+        }
+        prep()
+            .catch((e) => {
+                log(e);
+            })
+            .finally(() => {
+                setSpinner(false);
+            });
+    }, [question, filter, "" + bookletNumbers]);
+
+    if (!question) {
+        return <div>Please select a question first.</div>;
+    }
+    if (!filter) {
+        return <div>Please select a comment to filter by.</div>;
+    }
+
+    return (
+        <div className="question-glance">
+            <h4>
+                Viewing Question {question.label} ({question.slug})
+            </h4>
+            <p className={classNames([{ "icon--spinner": spinner }])}>
+                Filtering by:{" "}
+                {filter.comment && (
+                    <>
+                        (comment){" "}
+                        <span className="filter-comment">
+                            {(filter.comment || {}).text}
+                        </span>
+                    </>
+                )}
+                {filter.tag && (
+                    <>
+                        (tag){" "}
+                        <span className="filter-comment">
+                            {(filter.tag || {}).label}
+                        </span>
+                    </>
+                )}
+                {filter.grader && (
+                    <>
+                        (grader){" "}
+                        <span className="filter-comment">
+                            {(filter.grader || {})["display-name"]}
+                        </span>
+                    </>
+                )}
+                {filter.onlyUnmarked && (
+                    <>Unmarked Booklets (this can take a while)</>
+                )}
+            </p>
+            <textarea readOnly
+                value={JSON.stringify(
+                    displayedBooklets.map((x) => formatQuestion(x)),
+                    null,
+                    4
+                )}
+            />
+        </div>
+    );
+}
+
 function ViewQuestionsTab(props) {
     const { question, filter, boundingBox } = props;
     const [bookletInfo, setBookletInfo] = React.useState([]);
@@ -61,12 +187,12 @@ function ViewQuestionsTab(props) {
 
     // comments may be used more than once on a page
     const bookletNumbers = Array.from(
-        new Set(bookletInfo.map(x => x["exam-sequence"]))
+        new Set(bookletInfo.map((x) => x["exam-sequence"]))
     ).sort();
 
     log(
         "displaying booklets",
-        bookletInfo.map(x => x["exam-sequence"])
+        bookletInfo.map((x) => x["exam-sequence"])
     );
 
     React.useEffect(() => {
@@ -88,7 +214,7 @@ function ViewQuestionsTab(props) {
             );
         }
         prep()
-            .catch(e => {
+            .catch((e) => {
                 log(e);
             })
             .finally(() => {
@@ -145,7 +271,7 @@ function ViewQuestionsTab(props) {
                 numPerPage={numPerPage}
                 setNumPerPage={setNumPerPage}
                 seq={bookletNumbers}
-                callback={async bookletNumber => {
+                callback={async (bookletNumber) => {
                     const info = await exam.fetchInfoForBookletsByQuestion(
                         question,
                         [bookletNumber]
@@ -164,7 +290,7 @@ function ViewQuestionsTab(props) {
                         x: boundingBox.x / 1200,
                         y: boundingBox.y / 1553,
                         w: boundingBox.w / 1200,
-                        h: boundingBox.h / 1553
+                        h: boundingBox.h / 1553,
                     }}
                     className={`zoom-question-${size}`}
                 />
@@ -187,7 +313,7 @@ export function QuestionGlanceButton(props) {
     const [filter, setFilter] = React.useState({
         comment: null,
         tag: null,
-        grader: null
+        grader: null,
     });
     const [questions, setQuestions] = React.useState([]);
     const [selectedQuestionIndex, setSelectedQuestionIndex] = React.useState(
@@ -197,7 +323,7 @@ export function QuestionGlanceButton(props) {
         x: 0,
         y: 0,
         w: 1200,
-        h: 1533
+        h: 1533,
     });
 
     const question = questions[selectedQuestionIndex];
@@ -216,7 +342,7 @@ export function QuestionGlanceButton(props) {
                             label={{
                                 x: question["anchor-x"],
                                 y: question["anchor-y"],
-                                label: question.label
+                                label: question.label,
                             }}
                             setSelection={setSelection}
                             allowSelect
@@ -261,7 +387,8 @@ export function QuestionGlanceButton(props) {
                     tabNames={[
                         "Select Question",
                         "Select Filter",
-                        "View Questions"
+                        "View Questions",
+                        "Get Page URLs",
                     ]}
                 >
                     <>
@@ -282,6 +409,13 @@ export function QuestionGlanceButton(props) {
                     </>
                     <>
                         <ViewQuestionsTab
+                            question={question}
+                            filter={filter}
+                            boundingBox={selection}
+                        />
+                    </>
+                    <>
+                        <ViewQuestionPageUrls
                             question={question}
                             filter={filter}
                             boundingBox={selection}
